@@ -46,7 +46,7 @@ module Validators =
                | "" -> Some "Username cannot be empty"
                | u when u.Length < 3 -> Some "Username must be at least 3 characters long"
                | u when Patterns.hasIllegalCharacters u -> Some "Username must only contain letters, numbers, and underscores"
-               | u when Patterns.beginsWithNonLetter u -> Some "Username must being with a letter"
+               | u when Patterns.beginsWithNonLetter u -> Some "Username must begin with a letter"
                | _ -> None
 
     module Email =
