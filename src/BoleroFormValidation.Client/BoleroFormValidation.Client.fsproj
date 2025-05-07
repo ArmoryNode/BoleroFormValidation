@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="Templates\form.html" />
+    <Compile Include="Helpers\StringHelpers.fs" />
+    <Compile Include="Models\Validation.fs" />
+    <Compile Include="Models\UserRegistration.fs" />
+    <Compile Include="Validation\Validators.fs" />
+    <Compile Include="Models\User.fs" />
+    <Compile Include="Services\RegistrationService.fs" />
+    <Compile Include="Main.fs" />
+    <Compile Include="Startup.fs" />
+  </ItemGroup>
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
+</Project>

@@ -1,0 +1,90 @@
+﻿/* SPDX-License-Identifier: MIT */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: sans-serif;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: calc(50% - calc(50% / 2));
+    left: calc(50% - calc(50% / 2));
+    width: 50%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    border: solid 2px grey;
+    border-radius: 5px;
+}
+
+.w-50 {
+    width: 50%;
+}
+
+form label.form-title {
+    margin-bottom: 10px;
+}
+
+form sup.required,
+form .validation-message {
+    color: red;
+}
+
+form .validation-message {
+    margin-top: 5px;
+    font-size: 0.8em;
+}
+
+form small.hint {
+    margin-top: 5px;
+    color: grey;
+}
+
+form .form-row {
+    display: flex;
+    flex-direction: row;
+}
+
+form .form-row > .form-group {
+    flex-basis: 0;
+    flex-grow: 1;
+}
+
+form .form-group {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+}
+
+form .form-group label {
+    margin-bottom: 10px;
+}
+
+form .form-group label + input {
+    border: solid 2px grey;
+    border-radius: 5px;
+    padding: 5px;
+    outline: none;
+}
+
+form .form-group label + input:user-invalid,
+form .form-group label + input.invalid {
+    border-color: red;
+}
+
+form .button-container {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+}
+
+form .validation-summary {
+    color: red;
+}
+
+form .validation-summary .validation-success {
+    color: green;
+}

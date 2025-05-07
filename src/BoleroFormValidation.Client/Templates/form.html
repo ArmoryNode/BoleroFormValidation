@@ -1,0 +1,39 @@
+﻿<!-- SPDX-License-Identifier: MIT -->
+<template id="ValidatableInput">
+    <div class="form-group ${AdditionalClasses}">
+        <label for="${FieldName}">${Label}</label>
+        
+        <input type="${Type}"
+               id="${FieldName}"
+               placeholder="${Placeholder}"
+               class="${InputClasses}"
+               bind="${Value}"/>
+        
+        <span class="validation-message">${ValidationMessage}</span>
+        
+        <small class="hint">${Hint}</small>
+    </div>
+</template>
+
+<template id="RequiredTag">
+    <span>${Text}</span><sup class="required">*</sup>
+</template>
+
+<template id="RegisterUserForm">
+    <form novalidate="novalidate" onsubmit="${OnSubmit}" onreset="${OnReset}">
+        <label class="form-title">Register New User</label>
+        ${FormBody}
+        <div class="button-container">
+            <button type="reset">Reset</button>
+            <button type="submit">Register</button>
+        </div>
+        <div class="button-container">
+            <div class="validation-summary">${ValidationSummary}</div>
+        </div>
+        <br>
+        <div>
+            <label>Registered Users</label>
+            <ul>${RegisteredUsers}</ul>
+        </div>
+    </form>
+</template>

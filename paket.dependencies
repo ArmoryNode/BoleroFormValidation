@@ -1,0 +1,13 @@
+source https://api.nuget.org/v3/index.json
+framework: net9.0
+storage: none
+
+nuget FSharp.Core content: none
+nuget Bolero
+nuget Bolero.Build
+nuget Bolero.HotReload
+nuget Bolero.HotReload.Server
+nuget Bolero.Server
+nuget Microsoft.AspNetCore.Components.WebAssembly ~> 9.0.0
+nuget Microsoft.AspNetCore.Components.WebAssembly.Server ~> 9.0.0
+nuget Microsoft.AspNetCore.Components.WebAssembly.DevServer ~> 9.0.0
