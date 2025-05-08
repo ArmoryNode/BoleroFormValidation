@@ -45,33 +45,33 @@ type Message =
 type FormTemplates = Template<"Templates/form.html">
 
 let registrationUpdate remote message model =
-    let clearValidationMsg = Cmd.ofMsg << ClearValidation << Some
+    let clearValidationCmd = Cmd.ofMsg << ClearValidation << Some
 
     match message with
     | UpdateUserName userName ->
         { model with
             PageModel.UserRegistration.UserName = userName },
-        nameof model.UserRegistration.UserName |> clearValidationMsg
+        clearValidationCmd (nameof model.UserRegistration.UserName)
     | UpdateEmail email ->
         { model with
             PageModel.UserRegistration.Email = email },
-        nameof model.UserRegistration.Email |> clearValidationMsg
+        clearValidationCmd (nameof model.UserRegistration.Email)
     | UpdatePassword password ->
         { model with
             PageModel.UserRegistration.Password = password },
-        nameof model.UserRegistration.Password |> clearValidationMsg
+        clearValidationCmd (nameof model.UserRegistration.Password)
     | UpdateConfirmPassword password ->
         { model with
             PageModel.UserRegistration.ConfirmPassword = password },
-        nameof model.UserRegistration.ConfirmPassword |> clearValidationMsg
+        clearValidationCmd (nameof model.UserRegistration.ConfirmPassword)
     | ValidateUserRegistration registration ->
-        let errors = Validators.validateUserRegistration registration
+        let messages = Validators.validateUserRegistration registration
 
-        match Map.isEmpty errors with
+        match Map.isEmpty messages with
         | true -> model, Cmd.ofMsg << RegistrationMessage << RegisterUser <| registration
         | false ->
             { model with
-                RegistrationValid = Invalid errors },
+                RegistrationValid = Invalid messages },
             Cmd.none
     | RegisterUser person -> model, Cmd.OfAsync.perform remote.registerUser person (RegistrationMessage << RegisteredUser)
     | RegisteredUser result ->
@@ -102,17 +102,17 @@ let update remote message model =
     | ClearValidation fieldName ->
         match model.RegistrationValid with
         | Valid -> model, Cmd.none
-        | Invalid errors ->
+        | Invalid messages ->
             match fieldName with
             | None ->
                 { model with
                     RegistrationValid = ValidationResult.Default },
                 Cmd.none
             | Some fieldName ->
-                let errors = errors |> Map.filter (fun k _ -> k <> fieldName)
+                let messages = messages |> Map.filter (fun k _ -> k <> fieldName)
 
                 { model with
-                    RegistrationValid = Invalid errors },
+                    RegistrationValid = Invalid messages },
                 Cmd.none
     | ToggleValidationSummary ->
         { model with
@@ -121,9 +121,10 @@ let update remote message model =
 
 
 let getValidationClass fieldName validationResult =
-    match Validation.containsField fieldName validationResult with
-    | true -> "invalid"
-    | false -> ""
+    if Validation.containsField fieldName validationResult then
+        "invalid"
+    else
+        ""
 
 let generateValidationSummary validationResult showSummary dispatch =
     div {
@@ -163,6 +164,9 @@ let generateValidationSummary validationResult showSummary dispatch =
             | false -> empty ()
     }
 
+let requiredTag (text: string) =
+    FormTemplates.RequiredTag().Text(text).Elt()
+
 let view model dispatch =
     let userNameFieldName = nameof Unchecked.defaultof<UserRegistration>.UserName
     let emailFieldName = nameof Unchecked.defaultof<UserRegistration>.Email
@@ -181,7 +185,7 @@ let view model dispatch =
                     FormTemplates
                         .ValidatableInput()
                         .FieldName(userNameFieldName)
-                        .Label(FormTemplates.RequiredTag().Text("Username").Elt())
+                        .Label(requiredTag "Username")
                         .InputClasses(getValidationClass userNameFieldName model.RegistrationValid)
                         .Placeholder("Enter username...")
                         .Value(model.UserRegistration.UserName, (dispatch << RegistrationMessage << UpdateUserName))
@@ -192,7 +196,7 @@ let view model dispatch =
                     FormTemplates
                         .ValidatableInput()
                         .FieldName(emailFieldName)
-                        .Label(FormTemplates.RequiredTag().Text("Email").Elt())
+                        .Label(requiredTag "Email")
                         .InputClasses(getValidationClass emailFieldName model.RegistrationValid)
                         .Placeholder("Enter email...")
                         .Value(model.UserRegistration.Email, (dispatch << RegistrationMessage << UpdateEmail))
@@ -204,7 +208,7 @@ let view model dispatch =
                     .ValidatableInput()
                     .Type("password")
                     .FieldName(passwordFieldName)
-                    .Label(FormTemplates.RequiredTag().Text("Password").Elt())
+                    .Label(requiredTag "Password")
                     .InputClasses(getValidationClass passwordFieldName model.RegistrationValid)
                     .Placeholder("Enter password...")
                     .Value(model.UserRegistration.Password, (dispatch << RegistrationMessage << UpdatePassword))
@@ -216,7 +220,7 @@ let view model dispatch =
                     .ValidatableInput()
                     .Type("password")
                     .FieldName(confirmPasswordFieldName)
-                    .Label(FormTemplates.RequiredTag().Text("Confirm Password").Elt())
+                    .Label(requiredTag "Confirm Password")
                     .InputClasses(getValidationClass confirmPasswordFieldName model.RegistrationValid)
                     .Placeholder("Re-enter password...")
                     .Value(model.UserRegistration.ConfirmPassword, (dispatch << RegistrationMessage << UpdateConfirmPassword))

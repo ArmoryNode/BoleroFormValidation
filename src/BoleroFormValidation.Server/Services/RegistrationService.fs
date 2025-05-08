@@ -13,18 +13,18 @@ module Store =
 type RegistrationService() =
     inherit RemoteHandler<BoleroFormValidation.Client.Services.RegistrationService>()
 
-    let validateUniqueUsername registration errors =
+    let validateUniqueUsername registration messages =
         let fieldName = nameof registration.UserName
 
-        Validation.tryAppendMessage fieldName errors
+        Validation.tryAppendMessage fieldName messages
         <| match Store.registeredUsers.ContainsKey registration.UserName with
            | true -> Some "Username is already taken"
            | false -> None
 
-    let validateUniqueEmail registration errors =
+    let validateUniqueEmail registration messages =
         let fieldName = nameof registration.Email
 
-        Validation.tryAppendMessage fieldName errors
+        Validation.tryAppendMessage fieldName messages
         <| match Store.registeredUsers.ContainsValue registration.Email with
            | true -> Some "Email address is already registered"
            | false -> None
