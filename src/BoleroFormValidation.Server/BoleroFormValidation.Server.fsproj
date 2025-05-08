@@ -11,8 +11,8 @@
   <ItemGroup>
     <ProjectReference Include="..\BoleroFormValidation.Client\BoleroFormValidation.Client.fsproj" />
   </ItemGroup>
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
   <ItemGroup>
     <Content Include="**\wwwroot\**" Watch="false" />
   </ItemGroup>
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
