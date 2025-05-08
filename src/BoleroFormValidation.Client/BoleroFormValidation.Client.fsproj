@@ -8,8 +8,9 @@
     <Compile Include="Helpers\StringHelpers.fs" />
     <Compile Include="Models\Validation.fs" />
     <Compile Include="Models\UserRegistration.fs" />
-    <Compile Include="Validation\Validators.fs" />
     <Compile Include="Models\User.fs" />
+    <Compile Include="Validation\RegexPatterns.fs" />
+    <Compile Include="Validation\Validators.fs" />
     <Compile Include="Services\RegistrationService.fs" />
     <Compile Include="Main.fs" />
     <Compile Include="Startup.fs" />
