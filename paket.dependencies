@@ -3,6 +3,7 @@ framework: net9.0
 storage: none
 
 nuget FSharp.Core content: none
+nuget FSharp.Data = 6.3.0
 nuget Bolero
 nuget Bolero.Build
 nuget Bolero.HotReload
