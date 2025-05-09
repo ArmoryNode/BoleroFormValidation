@@ -53,4 +53,20 @@ type RegistrationService() =
                             { UserName = userMap.Key
                               Email = userMap.Value })
                         |> Seq.toList
+                }
+          removeUser =
+            fun userName ->
+                async {
+                    // Simulate a delay so the loading indicator doesn't flash
+                    do! Async.Sleep 1000
+
+                    if Store.registeredUsers.ContainsKey userName then
+                        Store.registeredUsers.Remove userName |> ignore
+
+                    return
+                        Store.registeredUsers
+                        |> Seq.map (fun userMap ->
+                            { UserName = userMap.Key
+                              Email = userMap.Value })
+                        |> Seq.toList
                 } }

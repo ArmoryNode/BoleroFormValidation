@@ -6,7 +6,8 @@ open BoleroFormValidation.Client.Models
 
 type RegistrationService =
     { registerUser: UserRegistration -> Async<ValidationResult>
-      getRegisteredUsers: unit -> Async<User list> }
+      getRegisteredUsers: unit -> Async<User list>
+      removeUser: string -> Async<User list> }
 
     interface IRemoteService with
         member this.BasePath = "/api/registration"

@@ -14,13 +14,15 @@ type PageModel =
     { UserRegistration: UserRegistration
       RegistrationValid: ValidationResult
       ShowValidationSummary: bool
-      RegisteredUsers: User list }
+      RegisteredUsers: User list
+      Loaded: bool }
 
 let initModel =
     { UserRegistration = UserRegistration.Empty
       RegistrationValid = ValidationResult.Default
       ShowValidationSummary = true
-      RegisteredUsers = [] }
+      RegisteredUsers = []
+      Loaded = false }
 
 type RegistrationMessage =
     | UpdateUserName of string
@@ -34,6 +36,8 @@ type RegistrationMessage =
 type UserMessage =
     | GetRegisteredUsers
     | GotRegisteredUsers of User list
+    | RemoveUser of string
+    | UserRemoved of User list
 
 type Message =
     | RegistrationMessage of RegistrationMessage
@@ -88,8 +92,17 @@ let registrationUpdate remote message model =
 
 let userUpdate remote message model =
     match message with
-    | GetRegisteredUsers -> model, Cmd.OfAsync.perform remote.getRegisteredUsers () (UserMessage << GotRegisteredUsers)
-    | GotRegisteredUsers users -> { model with RegisteredUsers = users }, Cmd.none
+    | GetRegisteredUsers ->
+        { model with Loaded = false }, Cmd.OfAsync.perform remote.getRegisteredUsers () (UserMessage << GotRegisteredUsers)
+    | GotRegisteredUsers users ->
+        { model with
+            RegisteredUsers = users
+            Loaded = true },
+        Cmd.none
+    | RemoveUser userName ->
+        { model with Loaded = false }, Cmd.OfAsync.perform remote.removeUser userName (UserMessage << UserRemoved)
+    | UserRemoved userList ->
+        { model with Loaded = true; RegisteredUsers = userList }, Cmd.none
 
 let update remote message model =
     match message with
@@ -145,11 +158,6 @@ let generateValidationSummary validationResult showSummary dispatch =
                 div {
                     cond validationResult
                     <| function
-                        | Valid ->
-                            div {
-                                attr.``class`` "validation-success"
-                                text "User registration successful!"
-                            }
                         | Invalid messages ->
                             ul {
                                 let messages = messages |> Validation.getMessages
@@ -160,12 +168,46 @@ let generateValidationSummary validationResult showSummary dispatch =
                                         text message
                                     }
                             }
+                        | Valid -> empty ()
                 }
             | false -> empty ()
     }
 
 let requiredTag (text: string) =
     FormTemplates.RequiredTag().Text(text).Elt()
+
+let registeredUsers model dispatch =
+    div {
+        cond model.Loaded
+        <| function
+            | true ->
+                match model.RegisteredUsers with
+                | [] ->
+                    div {
+                        attr.``class`` "text-muted"
+                        text "No users registered yet."
+                    }
+                | _ ->
+                    forEach model.RegisteredUsers
+                    <| fun user ->
+                        li {
+                            text $"%s{user.UserName}: %s{user.Email}"
+                            button {
+                                on.click (fun _ -> dispatch << UserMessage << RemoveUser <| user.UserName)
+
+                                attr.``type`` "button"
+                                attr.``class`` "delete-user"
+                                text "\u0020❌"
+                            }
+                        }
+            | false ->
+                div {
+                    attr.style "position: relative; min-height: 50px;"
+
+                    FormTemplates.Loader().Elt()
+                }
+    }
+
 
 let view model dispatch =
     let userNameFieldName = nameof Unchecked.defaultof<UserRegistration>.UserName
@@ -226,12 +268,21 @@ let view model dispatch =
                     .Value(model.UserRegistration.ConfirmPassword, (dispatch << RegistrationMessage << UpdateConfirmPassword))
                     .ValidationMessage(Validation.getMessage confirmPasswordFieldName model.RegistrationValid)
                     .Elt()
+
+                cond model.RegistrationValid
+                <| function
+                    | Valid ->
+                        div {
+                            attr.``class`` "validation-success"
+                            text "User registration successful!"
+                        }
+                    | Invalid _ -> empty ()
             }
         )
         .OnSubmit(fun _ -> dispatch << RegistrationMessage << ValidateUserRegistration <| model.UserRegistration)
         .OnReset(fun _ -> dispatch ResetForm)
         .ValidationSummary(generateValidationSummary model.RegistrationValid model.ShowValidationSummary dispatch)
-        .RegisteredUsers(forEach model.RegisteredUsers <| fun user -> li { $"%s{user.UserName}: %s{user.Email}" })
+        .RegisteredUsers(registeredUsers model dispatch)
         .Elt()
 
 type MyApp() =

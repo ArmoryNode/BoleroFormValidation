@@ -85,6 +85,14 @@ form .validation-summary {
     color: red;
 }
 
-form .validation-summary .validation-success {
+form .validation-success {
     color: green;
+    padding: 10px;
+}
+
+form button.delete-user {
+    background-color: transparent;
+    border: none;
+    outline: none;
+    cursor: pointer;
 }
