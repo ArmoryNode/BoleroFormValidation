@@ -12,6 +12,7 @@ let page = doctypeHtml {
         title { "Bolero Validation Demo" }
         ``base`` { attr.href "/" }
         link { attr.rel "stylesheet"; attr.href "css/main.css" }
+        link { attr.rel "stylesheet"; attr.href "css/loader.css" }
     }
     body {
         div { attr.id "main"; comp<Client.Main.MyApp> }

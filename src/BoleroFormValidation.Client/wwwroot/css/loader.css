@@ -1,0 +1,48 @@
+﻿/* SPDX-License-Identifier: MIT */
+.loader-container {
+    --circle-radius: 10px;
+
+    position: absolute;
+    left: calc(50% - var(--circle-radius));
+    top: calc(50% - var(--circle-radius));
+
+    animation: rotation 1s linear infinite;
+}
+
+.loader-container > .loader-body::before,
+.loader-container > .loader-body::after {
+    content: '';
+    position: absolute;
+    width: calc(var(--circle-radius) * 2);
+    height: calc(var(--circle-radius) * 2);
+    top: 0;
+    background-color: #0EBEFF;
+    border-radius: 50%;
+    animation: scale 1s infinite ease;
+}
+
+.loader-container > .loader-body::before {
+    top: auto;
+    bottom: 0;
+    animation-delay: -.5s;
+}
+
+@keyframes rotation {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes scale {
+    0%, 100% {
+        transform: scale(0);
+    }
+
+    50% {
+        transform: scale(1);
+    }
+}
