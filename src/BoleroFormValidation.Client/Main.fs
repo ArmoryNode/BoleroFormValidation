@@ -19,7 +19,7 @@ type PageModel =
 
 let initModel =
     { UserRegistration = UserRegistration.Empty
-      RegistrationValid = ValidationResult.Default
+      RegistrationValid = NotValidated
       ShowValidationSummary = true
       RegisteredUsers = []
       Loaded = false }
@@ -88,6 +88,7 @@ let registrationUpdate remote message model =
             { model with
                 UserRegistration = UserRegistration.Empty },
             Cmd.OfAsync.perform remote.getRegisteredUsers () (UserMessage << GotRegisteredUsers)
+        | NotValidated
         | Invalid _ -> model, Cmd.none
 
 let userUpdate remote message model =
@@ -114,12 +115,13 @@ let update remote message model =
         Cmd.ofMsg << ClearValidation <| None
     | ClearValidation fieldName ->
         match model.RegistrationValid with
-        | Valid -> model, Cmd.none
+        | Valid
+        | NotValidated -> model, Cmd.none
         | Invalid messages ->
             match fieldName with
             | None ->
                 { model with
-                    RegistrationValid = ValidationResult.Default },
+                    RegistrationValid = NotValidated },
                 Cmd.none
             | Some fieldName ->
                 let messages = messages |> Map.filter (fun k _ -> k <> fieldName)
@@ -168,6 +170,7 @@ let generateValidationSummary validationResult showSummary dispatch =
                                         text message
                                     }
                             }
+                        | NotValidated
                         | Valid -> empty ()
                 }
             | false -> empty ()
@@ -276,6 +279,7 @@ let view model dispatch =
                             attr.``class`` "validation-success"
                             text "User registration successful!"
                         }
+                    | NotValidated
                     | Invalid _ -> empty ()
             }
         )

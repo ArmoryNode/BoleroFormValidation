@@ -3,9 +3,8 @@ namespace BoleroFormValidation.Client.Models
 
 type ValidationResult =
     | Valid
+    | NotValidated
     | Invalid of Map<string, string list>
-
-    static member Default = Invalid Map.empty
 
 module Validation =
     let appendMessage fieldName map message =
@@ -24,12 +23,14 @@ module Validation =
 
     let getMessage fieldName validationResult =
         match validationResult with
-        | Valid -> ""
+        | Valid
+        | NotValidated -> ""
         | Invalid messages -> messages |> tryFind fieldName |> Option.defaultValue ""
 
     let getMessages map = map |> Map.values |> Seq.collect id
 
     let containsField fieldName validationResult =
         match validationResult with
-        | Valid -> false
+        | Valid
+        | NotValidated -> false
         | Invalid messages -> messages |> Map.containsKey fieldName
