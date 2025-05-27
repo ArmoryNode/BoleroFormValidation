@@ -10,20 +10,6 @@ open Elmish
 open Bolero
 open Bolero.Templating.Client
 
-type PageModel =
-    { UserRegistration: UserRegistration
-      RegistrationValid: ValidationResult
-      ShowValidationSummary: bool
-      RegisteredUsers: User list
-      Loaded: bool }
-
-let initModel =
-    { UserRegistration = UserRegistration.Empty
-      RegistrationValid = NotValidated
-      ShowValidationSummary = true
-      RegisteredUsers = []
-      Loaded = false }
-
 type RegistrationMessage =
     | UpdateUserName of string
     | UpdateEmail of string
@@ -48,36 +34,31 @@ type Message =
 
 type FormTemplates = Template<"Templates/form.html">
 
-let registrationUpdate remote message model =
-    let clearValidationCmd = Cmd.ofMsg << ClearValidation << Some
+let clearValidationCmd = Cmd.ofMsg << ClearValidation << Some
 
+let updateRegistration message model =
     match message with
     | UpdateUserName userName ->
         { model with
-            PageModel.UserRegistration.UserName = userName },
-        clearValidationCmd (nameof model.UserRegistration.UserName)
+            PageModel.UserRegistration.UserName = userName }
     | UpdateEmail email ->
         { model with
-            PageModel.UserRegistration.Email = email },
-        clearValidationCmd (nameof model.UserRegistration.Email)
+            PageModel.UserRegistration.Email = email }
     | UpdatePassword password ->
         { model with
-            PageModel.UserRegistration.Password = password },
-        clearValidationCmd (nameof model.UserRegistration.Password)
+            PageModel.UserRegistration.Password = password }
     | UpdateConfirmPassword password ->
         { model with
-            PageModel.UserRegistration.ConfirmPassword = password },
-        clearValidationCmd (nameof model.UserRegistration.ConfirmPassword)
+            PageModel.UserRegistration.ConfirmPassword = password }
     | ValidateUserRegistration registration ->
         let messages = Validators.validateUserRegistration registration
 
-        match Map.isEmpty messages with
-        | true -> model, Cmd.ofMsg << RegistrationMessage << RegisterUser <| registration
-        | false ->
+        if Map.isEmpty messages then
+            model
+        else
             { model with
-                RegistrationValid = Invalid messages },
-            Cmd.none
-    | RegisterUser person -> model, Cmd.OfAsync.perform remote.registerUser person (RegistrationMessage << RegisteredUser)
+                RegistrationValid = Invalid messages }
+    | RegisterUser _ -> model
     | RegisteredUser result ->
         let model =
             { model with
@@ -86,8 +67,26 @@ let registrationUpdate remote message model =
         match result with
         | Valid ->
             { model with
-                UserRegistration = UserRegistration.Empty },
-            Cmd.OfAsync.perform remote.getRegisteredUsers () (UserMessage << GotRegisteredUsers)
+                UserRegistration = UserRegistration.Empty }
+        | NotValidated
+        | Invalid _ -> model
+
+let withRegistrationCommands remote message model =
+    match message with
+    | UpdateUserName _ -> model, clearValidationCmd (nameof model.UserRegistration.UserName)
+    | UpdateEmail _ -> model, clearValidationCmd (nameof model.UserRegistration.Email)
+    | UpdatePassword _ -> model, clearValidationCmd (nameof model.UserRegistration.Password)
+    | UpdateConfirmPassword _ -> model, clearValidationCmd (nameof model.UserRegistration.ConfirmPassword)
+    | ValidateUserRegistration registration ->
+        Validators.validateUserRegistration registration
+        |> Map.isEmpty
+        |> function
+            | true -> model, Cmd.ofMsg (RegistrationMessage(RegisterUser registration))
+            | false -> model, Cmd.none
+    | RegisterUser person -> model, Cmd.OfAsync.perform remote.registerUser person (RegistrationMessage << RegisteredUser)
+    | RegisteredUser result ->
+        match result with
+        | Valid -> model, Cmd.OfAsync.perform remote.getRegisteredUsers () (UserMessage << GotRegisteredUsers)
         | NotValidated
         | Invalid _ -> model, Cmd.none
 
@@ -100,14 +99,16 @@ let userUpdate remote message model =
             RegisteredUsers = users
             Loaded = true },
         Cmd.none
-    | RemoveUser userName ->
-        { model with Loaded = false }, Cmd.OfAsync.perform remote.removeUser userName (UserMessage << UserRemoved)
+    | RemoveUser userName -> { model with Loaded = false }, Cmd.OfAsync.perform remote.removeUser userName (UserMessage << UserRemoved)
     | UserRemoved userList ->
-        { model with Loaded = true; RegisteredUsers = userList }, Cmd.none
+        { model with
+            Loaded = true
+            RegisteredUsers = userList },
+        Cmd.none
 
 let update remote message model =
     match message with
-    | RegistrationMessage message -> registrationUpdate remote message model
+    | RegistrationMessage message -> model |> updateRegistration message |> withRegistrationCommands remote message
     | UserMessage message -> userUpdate remote message model
     | ResetForm ->
         { model with
@@ -195,6 +196,7 @@ let registeredUsers model dispatch =
                     <| fun user ->
                         li {
                             text $"%s{user.UserName}: %s{user.Email}"
+
                             button {
                                 on.click (fun _ -> dispatch << UserMessage << RemoveUser <| user.UserName)
 
@@ -299,7 +301,7 @@ type MyApp() =
         let command =
             Cmd.OfAsync.perform personService.getRegisteredUsers () (UserMessage << GotRegisteredUsers)
 
-        Program.mkProgram (fun _ -> initModel, command) update view
+        Program.mkProgram (fun _ -> PageModel.Default, command) update view
 #if DEBUG
         |> Program.withHotReload
 #endif

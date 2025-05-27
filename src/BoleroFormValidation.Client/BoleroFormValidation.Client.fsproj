@@ -9,6 +9,7 @@
     <Compile Include="Models\Validation.fs" />
     <Compile Include="Models\UserRegistration.fs" />
     <Compile Include="Models\User.fs" />
+    <Compile Include="Models\PageModel.fs" />
     <Compile Include="Validation\RegexPatterns.fs" />
     <Compile Include="Validation\Validators.fs" />
     <Compile Include="Services\RegistrationService.fs" />
